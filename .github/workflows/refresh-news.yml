@@ -1,0 +1,42 @@
+
+name: Refresh global market news
+
+on:
+  schedule:
+    # 7:00 AM IST
+    - cron: "30 1 * * *"
+
+    # 9:00 PM IST
+    - cron: "30 15 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch latest news
+        run: python refresh_news.py
+
+      - name: Save updated news
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          git diff --cached --quiet || git commit -m "Update market news"
+          git push
